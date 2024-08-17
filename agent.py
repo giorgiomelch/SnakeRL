@@ -63,8 +63,25 @@ class Agent:
             game.food.y < game.head.y,  # food up
             game.food.y > game.head.y  # food down
             ]
+        
+        d1, d2, d3 = SnakeGameAI.collision_distance(game)
+        state2 = [
+            d1,
+            d2,
+            d3,
+            # Move direction
+            dir_l,
+            dir_r,
+            dir_u,
+            dir_d,
+            # Food location 
+            game.food.x < game.head.x,  # food left
+            game.food.x > game.head.x,  # food right
+            game.food.y < game.head.y,  # food up
+            game.food.y > game.head.y  # food down
+            ]
 
-        return np.array(state, dtype=int)
+        return np.array(state2, dtype=int)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))   #double parentheses to return a tuple

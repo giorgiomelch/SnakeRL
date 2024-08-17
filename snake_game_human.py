@@ -21,8 +21,10 @@ BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
+GRAY = (40, 40, 40)
+
 BLOCK_SIZE = 20
-SPEED = 20
+SPEED = 1
 
 class SnakeGame:
     
@@ -75,7 +77,7 @@ class SnakeGame:
         
         # 3. check if game over
         game_over = False
-        if self._is_collision():
+        if self.is_collision():
             game_over = True
             return game_over, self.score
             
@@ -92,19 +94,60 @@ class SnakeGame:
         # 6. return game over and score
         return game_over, self.score
     
-    def _is_collision(self):
+    def is_collision(self, pt=None):
+        if pt is None:
+            pt = self.head
         # hits boundary
-        if self.head.x > self.w - BLOCK_SIZE or self.head.x < 0 or self.head.y > self.h - BLOCK_SIZE or self.head.y < 0:
+        if pt.x > self.w - BLOCK_SIZE or pt.x < 0 or pt.y > self.h - BLOCK_SIZE or pt.y < 0: 
             return True
         # hits itself
-        if self.head in self.snake[1:]:
+        if pt in self.snake[1:]:
             return True
         
         return False
+
+    def collision_direction_distance(self, direction, pt=None):
+        if pt is None:
+            pt = self.head
+
+        distance = 0
+        x = self.head.x
+        y = self.head.y
+        check_point = self.head
+
+        while not self.is_collision(check_point):
+            if direction == Direction.RIGHT:
+                x += BLOCK_SIZE
+            elif direction == Direction.LEFT:
+                x -= BLOCK_SIZE
+            elif direction == Direction.DOWN:
+                y += BLOCK_SIZE
+            elif direction == Direction.UP:
+                y -= BLOCK_SIZE
+            distance += 1
+            check_point = Point(x, y)
         
+        return distance
+    
+    def collision_distance(self):
+        clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
+        idx = clock_wise.index(self.direction)
+
+        dist_1 = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
+        dist_2 = self.collision_direction_distance(clock_wise[ idx ])
+        dist_3 = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
+        return dist_1, dist_2, dist_3
+
+    def _draw_grid(self):
+        for x in range(0, self.w, BLOCK_SIZE):
+            pygame.draw.line(self.display, GRAY, (x, 0), (x, self.h))
+        for y in range(0, self.h, BLOCK_SIZE):
+            pygame.draw.line(self.display, GRAY, (0, y), (self.w, y))
+
     def _update_ui(self):
         self.display.fill(BLACK)
         
+        self._draw_grid()
         for pt in self.snake:
             pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
             pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
@@ -126,7 +169,7 @@ class SnakeGame:
             y += BLOCK_SIZE
         elif direction == Direction.UP:
             y -= BLOCK_SIZE
-            
+        self.direction = direction
         self.head = Point(x, y)
             
 
