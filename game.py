@@ -23,7 +23,7 @@ BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
 BLOCK_SIZE = 20
-SPEED = 250
+SPEED = 10000
 
 class SnakeGameAI:
 
@@ -134,10 +134,10 @@ class SnakeGameAI:
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction)
 
-        dist_1 = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
-        dist_2 = self.collision_direction_distance(clock_wise[ idx ])
-        dist_3 = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
-        return dist_1, dist_2, dist_3
+        dist_left = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
+        dist_forward = self.collision_direction_distance(clock_wise[ idx ])
+        dist_right = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
+        return dist_left, dist_forward, dist_right
 
 
     def _update_ui(self):
@@ -156,7 +156,6 @@ class SnakeGameAI:
 
     def _move(self, action):
         # [straight, right, left]
-
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction)
 

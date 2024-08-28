@@ -133,10 +133,10 @@ class SnakeGame:
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction)
 
-        dist_1 = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
-        dist_2 = self.collision_direction_distance(clock_wise[ idx ])
-        dist_3 = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
-        return dist_1, dist_2, dist_3
+        dist_left = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
+        dist_forward = self.collision_direction_distance(clock_wise[ idx ])
+        dist_right = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
+        return dist_left, dist_forward, dist_right
 
     def _draw_grid(self):
         for x in range(0, self.w, BLOCK_SIZE):
@@ -146,7 +146,6 @@ class SnakeGame:
 
     def _update_ui(self):
         self.display.fill(BLACK)
-        
         self._draw_grid()
         for pt in self.snake:
             pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
@@ -154,7 +153,9 @@ class SnakeGame:
             
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         
-        text = font.render("Score: " + str(self.score), True, WHITE)
+        #text = font.render("Score: " + str(self.score), True, WHITE)
+        dl, df, dr = self.collision_distance()
+        text = font.render("Score: " + str(self.score) + "  dl: "+ str(dl) + " df: "+ str(df) + " dr: "+ str(dr), True, WHITE)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
         

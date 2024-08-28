@@ -7,7 +7,7 @@ from model import Linear_QNet, QTrainer
 from helper import plot, save_plot
 
 MAX_MEMORY = 100_000
-BATCH_SIZE = 1000
+BATCH_SIZE = 5000
 LR = 0.001
 
 class Agent:
@@ -32,7 +32,7 @@ class Agent:
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
 
-        state = [
+        state_simple = [
             # Danger straight
             (dir_r and game.is_collision(point_r)) or 
             (dir_l and game.is_collision(point_l)) or 
@@ -65,7 +65,7 @@ class Agent:
             ]
         
         d1, d2, d3 = SnakeGameAI.collision_distance(game)
-        state2 = [
+        state_distance = [
             d1,
             d2,
             d3,
@@ -81,7 +81,7 @@ class Agent:
             game.food.y > game.head.y  # food down
             ]
 
-        return np.array(state2, dtype=int)
+        return np.array(state_simple, dtype=int)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))   #double parentheses to return a tuple
@@ -95,7 +95,6 @@ class Agent:
         states, actions, rewards, next_states, dones = zip(*mini_sample)
         self.trainer.train_step(states, actions, rewards, next_states, dones)    
         
-
     def train_short_memory(self, state, action, reward, next_state, done):
         self.trainer.train_step(state, action, reward, next_state, done)
 
@@ -122,7 +121,7 @@ def train():
     agent = Agent()
     game = SnakeGameAI()
 
-    while agent.n_games < 200:
+    while agent.n_games < 300:
         # get old state
         state_old = agent.get_state(game)
 
@@ -158,10 +157,7 @@ def train():
             plot(plot_scores, plot_mean_scores)
 
     # save plot
-    save_plot("plot_training/plotLQN", plot_scores, plot_mean_scores)
-
-
-
+    save_plot("plot_training/plotLQN-state_distance", plot_scores, plot_mean_scores)
 
 
 if __name__ == "__main__":
