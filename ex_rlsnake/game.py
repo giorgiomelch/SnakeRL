@@ -67,11 +67,9 @@ class SnakeGameAI:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-        
         # 2. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
-        
         # 3. check if game over
         reward = 0
         game_over = False
@@ -79,7 +77,6 @@ class SnakeGameAI:
             game_over = True
             reward = -10
             return reward, game_over, self.score
-
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
@@ -87,7 +84,6 @@ class SnakeGameAI:
             self._place_food()
         else:
             self.snake.pop()
-        
         # 5. update ui and clock
         self._update_ui()
         self.clock.tick(SPEED)
@@ -106,39 +102,6 @@ class SnakeGameAI:
             return True
 
         return False
-
-    def collision_direction_distance(self, direction, pt=None):
-        if pt is None:
-            pt = self.head
-
-        distance = 0
-        x = self.head.x
-        y = self.head.y
-        check_point = self.head
-
-        while not self.is_collision(check_point):
-            if direction == Direction.RIGHT:
-                x += BLOCK_SIZE
-            elif direction == Direction.LEFT:
-                x -= BLOCK_SIZE
-            elif direction == Direction.DOWN:
-                y += BLOCK_SIZE
-            elif direction == Direction.UP:
-                y -= BLOCK_SIZE
-            distance += 1
-            check_point = Point(x, y)
-        
-        return distance
-    
-    def collision_distance(self):
-        clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = clock_wise.index(self.direction)
-
-        dist_left = self.collision_direction_distance(clock_wise[ (idx - 1) % 4 ])
-        dist_forward = self.collision_direction_distance(clock_wise[ idx ])
-        dist_right = self.collision_direction_distance(clock_wise[ (idx + 1) % 4 ])
-        return dist_left, dist_forward, dist_right
-
 
     def _update_ui(self):
         self.display.fill(BLACK)

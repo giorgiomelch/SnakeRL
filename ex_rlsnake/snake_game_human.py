@@ -24,11 +24,11 @@ BLACK = (0,0,0)
 GRAY = (40, 40, 40)
 
 BLOCK_SIZE = 20
-SPEED = 1
+SPEED = 10
 
 class SnakeGame:
     
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=400, h=400):
         self.w = w
         self.h = h
         # init display
