@@ -1,11 +1,7 @@
-import pygame
 import random
 from enum import Enum
 from collections import namedtuple
 import numpy as np
-
-pygame.init()
-font = pygame.font.Font(None, 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -23,18 +19,13 @@ BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
 BLOCK_SIZE = 20
-SPEED = 10
+SPEED = 10000
 
 class SnakeGameAI:
 
-    def __init__(self, w=400, h=400):
+    def __init__(self, w=200, h=200):
         self.w = w
         self.h = h
-        # init display
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
-        self.clock = pygame.time.Clock()
-        self.reset()
 
 
     def reset(self):
@@ -79,9 +70,6 @@ class SnakeGameAI:
             self._place_food()
         else:
             self.snake.pop()
-        # 4. update ui and clock
-        self._update_ui()
-        self.clock.tick(SPEED)
         # 5. return game over and score
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
@@ -98,19 +86,6 @@ class SnakeGameAI:
             return True
 
         return False
-
-    def _update_ui(self):
-        self.display.fill(BLACK)
-
-        for pt in self.snake:
-            pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-            pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
-
-        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
-
-        text = font.render("Score: " + str(self.score), True, WHITE)
-        self.display.blit(text, [0, 0])
-        pygame.display.flip()
 
 
     def _move(self, action):
@@ -223,9 +198,6 @@ class SnakeGameAI:
             self._place_food()
         else:
             self.snake.pop()
-        # 4. update ui and clock
-        self._update_ui()
-        self.clock.tick(SPEED)
         # 5. return game over and score
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
