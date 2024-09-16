@@ -23,7 +23,7 @@ SPEED = 10000
 
 class SnakeGameAI:
 
-    def __init__(self, w=200, h=200):
+    def __init__(self, w=400, h=400):
         self.w = w
         self.h = h
 
@@ -186,7 +186,7 @@ class SnakeGameAI:
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
-            reward = -100
+            reward = -10
             return self.get_state(), reward, game_over, self.score
         #direzione verso il frutto
         if self.good_move():
