@@ -194,12 +194,13 @@ class SnakeGameAI:
             return True
         elif (self.direction == Direction.LEFT) and (self.food.x < self.head.x):
             return True
-        elif (self.direction == Direction.DOWN) and (self.food.y < self.head.y):
+        elif (self.direction == Direction.UP) and (self.food.y < self.head.y):
             return True
-        elif (self.direction == Direction.UP) and (self.food.y > self.head.y):
+        elif (self.direction == Direction.DOWN) and (self.food.y > self.head.y):
             return True
         else:
             return False
+
 
     def play_step_QL(self, action):
         self.frame_iteration += 1
