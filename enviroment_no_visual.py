@@ -169,9 +169,9 @@ class SnakeGameAI:
             return True
         elif (self.direction == Direction.LEFT) and (self.food.x < self.head.x):
             return True
-        elif (self.direction == Direction.DOWN) and (self.food.y < self.head.y):
+        elif (self.direction == Direction.UP) and (self.food.y < self.head.y):
             return True
-        elif (self.direction == Direction.UP) and (self.food.y > self.head.y):
+        elif (self.direction == Direction.DOWN) and (self.food.y > self.head.y):
             return True
         else:
             return False
@@ -186,7 +186,7 @@ class SnakeGameAI:
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
-            reward = -10
+            reward = -100
             return self.get_state(), reward, game_over, self.score
         #direzione verso il frutto
         if self.good_move():
