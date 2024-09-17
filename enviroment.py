@@ -71,6 +71,7 @@ class SnakeGameAI:
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
             reward = -10
+            pygame.quit()
             return self.get_state(), reward, game_over, self.score
         # 3. place new food or just move
         if self.head == self.food:
