@@ -23,13 +23,13 @@ BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
 BLOCK_SIZE = 20
-SPEED = 8
 
 class SnakeGameAI:
 
-    def __init__(self, w=400, h=400):
+    def __init__(self, w=400, h=400, speed=8):
         self.w = w
         self.h = h
+        self.speed = speed
         # init display
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Snake')
@@ -62,6 +62,11 @@ class SnakeGameAI:
 
     def play_step(self, action):
         self.frame_iteration += 1
+        # collect user input
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
         # 1. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
@@ -81,7 +86,7 @@ class SnakeGameAI:
             self.snake.pop()
         # 4. update ui and clock
         self._update_ui()
-        self.clock.tick(SPEED)
+        self.clock.tick(self.speed)
         # 5. return game over and score
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
@@ -226,7 +231,7 @@ class SnakeGameAI:
             self.snake.pop()
         # 4. update ui and clock
         self._update_ui()
-        self.clock.tick(SPEED)
+        self.clock.tick(self.speed)
         # 5. return game over and score
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
