@@ -1,6 +1,10 @@
+Risolvi il problema di snake tramite diversi approcci Q-Learning-
 
+Primo approccio: funzione rappresentante i Q-value in formato tabellare con input 11 stati
 
+Secondo approccio: utilizzare una rete neurale e input 11 stati
 
+Terzo approccio: utilizzare una rete neurale con input la matrice di gioco
 
 
 Quando si esegue snake_game_human.py è viene generato l'errore: libGL error: MESA-LOADER: failed to open iris: /usr/lib/dri/iris_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: iris libGL error: MESA-LOADER: failed to open iris: /usr/lib/dri/iris_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: iris libGL error: MESA-LOADER: failed to open swrast: /usr/lib/dri/swrast_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: swrast
