@@ -25,6 +25,7 @@ class SnakeGameAI:
     def __init__(self, w=400, h=400):
         self.w = w
         self.h = h
+        self.reset()
 
 
     def reset(self):
