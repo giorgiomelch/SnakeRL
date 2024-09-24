@@ -194,6 +194,14 @@ class SnakeGameAI:
         
         return np.array(state, dtype=int)
     
+    def get_matrix_state(self):
+        state = np.zeros((self.h // self.BLOCK_SIZE, self.w // self.BLOCK_SIZE))
+        for point in self.snake[1:]: 
+            state[point.y // self.BLOCK_SIZE][point.x // self.BLOCK_SIZE] = 1  # Corpo rappresentato da 1
+        head = self.snake[0]
+        state[head.y // self.BLOCK_SIZE][head.x // self.BLOCK_SIZE] = 2  # Testa rappresentata da 2
+        state[self.food.y // self.BLOCK_SIZE][self.food.x // self.BLOCK_SIZE] = -1  # Cibo rappresentato da -1
+        return state
 
     def good_move(self):
         if (self.direction == Direction.RIGHT) and (self.food.x > self.head.x):
