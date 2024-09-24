@@ -1,20 +1,4 @@
-Risolvi il problema di snake tramite diversi approcci Q-Learning-
+# Snake Game - Solving with Reinforcement Learning
+This project explores various Reinforcement Learning (RL) techniques to solve the classic Snake game. The main goal is to train agents to maximize their score by learning optimal policies for navigating the game board and collecting food while avoiding collisions.
 
-Primo approccio: funzione rappresentante i Q-value in formato tabellare con input 11 stati
-
-Secondo approccio: utilizzare una rete neurale e input 11 stati
-
-Terzo approccio: utilizzare una rete neurale con input la matrice di gioco
-
-
-Quando si esegue snake_game_human.py è viene generato l'errore: libGL error: MESA-LOADER: failed to open iris: /usr/lib/dri/iris_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: iris libGL error: MESA-LOADER: failed to open iris: /usr/lib/dri/iris_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: iris libGL error: MESA-LOADER: failed to open swrast: /usr/lib/dri/swrast_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/x86_64-linux-gnu/dri:$${ORIGIN}/dri:/usr/lib/dri, suffix _dri) libGL error: failed to load driver: swrast
-Possibile soluzione:
-#Enter the storage location of Anaconda libstdc++
-
-cd /home/usr/anaconda3/lib/ 
-mkdir backup  #Create a new folder to keep the original libstdc++
-mv libstd* backup  # Put all libstdc++ files into the folder, including soft links
-#Copy the c++ dynamic link library of the system here
-cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6  ./
-ln -s libstdc++.so.6 libstdc++.so
-ln -s libstdc++.so.6 libstdc++.so.6.0.19
+For a comprehensive explanation of the approaches, training methods, and results, please refer to the report.pdf file in the root directory of the project. This PDF provides a detailed breakdown of each method, its performance, and the challenges faced during training.
