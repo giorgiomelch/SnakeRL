@@ -202,3 +202,6 @@ class SnakeGameAI:
         state[head.y // self.BLOCK_SIZE][head.x // self.BLOCK_SIZE] = 2  # Testa rappresentata da 2
         state[self.food.y // self.BLOCK_SIZE][self.food.x // self.BLOCK_SIZE] = -1  # Cibo rappresentato da -1
         return state
+    
+    def quit(self):      
+        pygame.quit()
