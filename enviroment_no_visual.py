@@ -172,7 +172,8 @@ class SnakeGameAI:
         head = self.snake[0]
         x_index = int(head.x // BLOCK_SIZE)
         y_index = int(head.y // BLOCK_SIZE)
-        state[y_index][x_index] = 2  # Testa rappresentata da 2
+        if x_index < self.w/BLOCK_SIZE and y_index < self.h/BLOCK_SIZE:
+            state[y_index][x_index] = 2  # Testa rappresentata da 2
         x_index = int(self.food.x // BLOCK_SIZE)
         y_index = int(self.food.y // BLOCK_SIZE)
         state[y_index][x_index] = -1  # Cibo rappresentato da -1
@@ -197,11 +198,6 @@ class SnakeGameAI:
             self._place_food()
         else:
             self.snake.pop()
-        # 4. update ui and clock
-        self._update_ui()
-        if self.speed != 0:
-            self.clock.tick(self.speed)
         # 5. return game over and score
         new_state = self.get_matrix_state()
-        print(self.get_matrix_state())
         return new_state, reward, game_over, self.score
