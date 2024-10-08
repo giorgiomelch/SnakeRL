@@ -164,10 +164,44 @@ class SnakeGameAI:
         return np.array(state, dtype=int)
     
     def get_matrix_state(self):
-        state = np.zeros((self.h // self.BLOCK_SIZE, self.w // self.BLOCK_SIZE))
-        for point in self.snake[1:]: 
-            state[point.y // self.BLOCK_SIZE][point.x // self.BLOCK_SIZE] = 1  # Corpo rappresentato da 1
+        state = np.zeros((self.h // BLOCK_SIZE, self.w // BLOCK_SIZE))
+        for point in self.snake[1:]:
+            x_index = int(point.x // BLOCK_SIZE)
+            y_index = int(point.y // BLOCK_SIZE)
+            state[y_index][x_index] = 1  # Corpo rappresentato da 1
         head = self.snake[0]
-        state[head.y // self.BLOCK_SIZE][head.x // self.BLOCK_SIZE] = 2  # Testa rappresentata da 2
-        state[self.food.y // self.BLOCK_SIZE][self.food.x // self.BLOCK_SIZE] = -1  # Cibo rappresentato da -1
+        x_index = int(head.x // BLOCK_SIZE)
+        y_index = int(head.y // BLOCK_SIZE)
+        state[y_index][x_index] = 2  # Testa rappresentata da 2
+        x_index = int(self.food.x // BLOCK_SIZE)
+        y_index = int(self.food.y // BLOCK_SIZE)
+        state[y_index][x_index] = -1  # Cibo rappresentato da -1
         return state
+    
+    def play_step_m(self, action):
+        self.frame_iteration += 1
+        # 1. move
+        self._move(action) # update the head
+        self.snake.insert(0, self.head)
+        # 2. check if game over
+        reward = 0
+        game_over = False
+        if self.is_collision() or self.frame_iteration > 50*len(self.snake):
+            game_over = True
+            reward = -10
+            return self.get_matrix_state(), reward, game_over, self.score
+        # 3. place new food or just move
+        if self.head == self.food:
+            self.score += 1
+            reward = 10
+            self._place_food()
+        else:
+            self.snake.pop()
+        # 4. update ui and clock
+        self._update_ui()
+        if self.speed != 0:
+            self.clock.tick(self.speed)
+        # 5. return game over and score
+        new_state = self.get_matrix_state()
+        print(self.get_matrix_state())
+        return new_state, reward, game_over, self.score
