@@ -27,21 +27,16 @@ class SnakeGameAI:
         self.h = h
         self.reset()
 
-
     def reset(self):
-        # init game state
         self.direction = Direction.RIGHT
-
         self.head = Point(self.w/2, self.h/2)
         self.snake = [self.head,
                       Point(self.head.x-BLOCK_SIZE, self.head.y),
                       Point(self.head.x-(2*BLOCK_SIZE), self.head.y)]
-
         self.score = 0
         self.food = None
         self._place_food()
         self.frame_iteration = 0
-
 
     def _place_food(self):
         x = random.randint(0, (self.w-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE
@@ -49,7 +44,6 @@ class SnakeGameAI:
         self.food = Point(x, y)
         if self.food in self.snake:
             self._place_food()
-
 
     def play_step(self, action):
         self.frame_iteration += 1
@@ -74,7 +68,6 @@ class SnakeGameAI:
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
 
-
     def is_collision(self, pt=None):
         if pt is None:
             pt = self.head
@@ -84,15 +77,12 @@ class SnakeGameAI:
         # hits itself
         if pt in self.snake[1:]:
             return True
-
         return False
-
 
     def _move(self, action):
         # [straight, right, left]
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction)
-
         if np.array_equal(action, [1, 0, 0]):
             new_dir = clock_wise[idx] # no change
         elif np.array_equal(action, [0, 1, 0]):
@@ -101,9 +91,7 @@ class SnakeGameAI:
         else: # [0, 0, 1]
             next_idx = (idx - 1) % 4
             new_dir = clock_wise[next_idx] # left turn r -> u -> l -> d
-
         self.direction = new_dir
-
         x = self.head.x
         y = self.head.y
         if self.direction == Direction.RIGHT:
@@ -114,7 +102,23 @@ class SnakeGameAI:
             y += BLOCK_SIZE
         elif self.direction == Direction.UP:
             y -= BLOCK_SIZE
+        self.head = Point(x, y)
 
+    def _move_4d(self, action):
+        direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
+        idx = np.argmax(action)
+        new_dir = direction_array[idx]
+        self.direction = new_dir
+        x = self.head.x
+        y = self.head.y
+        if self.direction == Direction.RIGHT:
+            x += BLOCK_SIZE
+        elif self.direction == Direction.LEFT:
+            x -= BLOCK_SIZE
+        elif self.direction == Direction.DOWN:
+            y += BLOCK_SIZE
+        elif self.direction == Direction.UP:
+            y -= BLOCK_SIZE
         self.head = Point(x, y)
 
     def get_state(self):
@@ -123,48 +127,45 @@ class SnakeGameAI:
         point_r = Point(head.x + 20, head.y)
         point_u = Point(head.x, head.y - 20)
         point_d = Point(head.x, head.y + 20)
-        
         dir_l = self.direction == Direction.LEFT
         dir_r = self.direction == Direction.RIGHT
         dir_u = self.direction == Direction.UP
         dir_d = self.direction == Direction.DOWN
-
         state = [
             # Danger straight
             (dir_r and self.is_collision(point_r)) or 
             (dir_l and self.is_collision(point_l)) or 
             (dir_u and self.is_collision(point_u)) or 
             (dir_d and self.is_collision(point_d)),
-
             # Danger right
             (dir_u and self.is_collision(point_r)) or 
             (dir_d and self.is_collision(point_l)) or 
             (dir_l and self.is_collision(point_u)) or 
             (dir_r and self.is_collision(point_d)),
-
             # Danger left
             (dir_d and self.is_collision(point_r)) or 
             (dir_u and self.is_collision(point_l)) or 
             (dir_r and self.is_collision(point_u)) or 
             (dir_l and self.is_collision(point_d)),
-            
             # Move direction
             dir_l,
             dir_r,
             dir_u,
             dir_d,
-            
             # Food location 
             self.food.x < self.head.x,  # food left
             self.food.x > self.head.x,  # food right
             self.food.y < self.head.y,  # food up
             self.food.y > self.head.y  # food down
             ]
-        
         return np.array(state, dtype=int)
     
     def get_matrix_state(self):
-        state = np.zeros((self.h // BLOCK_SIZE, self.w // BLOCK_SIZE))
+        state = np.zeros((self.h // BLOCK_SIZE + 1, self.w // BLOCK_SIZE + 1))
+        state[0, :] = 1
+        state[-1, :] = 1
+        state[:, 0] = 1
+        state[:, -1] = 1 
         for point in self.snake[1:]:
             x_index = int(point.x // BLOCK_SIZE)
             y_index = int(point.y // BLOCK_SIZE)
@@ -182,14 +183,15 @@ class SnakeGameAI:
     def play_step_m(self, action):
         self.frame_iteration += 1
         # 1. move
-        self._move(action) # update the head
+        self._move_4d(action) # update the head
         self.snake.insert(0, self.head)
         # 2. check if game over
         reward = 0
         game_over = False
         if self.is_collision() or self.frame_iteration > 50*len(self.snake):
             game_over = True
-            reward = -10
+            if self.is_collision():
+                reward = -10
             return self.get_matrix_state(), reward, game_over, self.score
         # 3. place new food or just move
         if self.head == self.food:
