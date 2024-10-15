@@ -218,6 +218,11 @@ class SnakeGameAI:
     
     def play_step_m(self, action):
         self.frame_iteration += 1
+        # collect user input
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
         # 1. move
         self._move_4d(action) # update the head
         self.snake.insert(0, self.head)
@@ -236,6 +241,10 @@ class SnakeGameAI:
             self._place_food()
         else:
             self.snake.pop()
+        # 4. update ui and clock
+        self._update_ui()
+        if self.speed != 0:
+            self.clock.tick(self.speed)
         # 5. return game over and score
         new_state = self.get_matrix_state()
         return new_state, reward, game_over, self.score
