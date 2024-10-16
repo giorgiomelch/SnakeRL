@@ -2,6 +2,7 @@ import random
 from enum import Enum
 from collections import namedtuple
 import numpy as np
+import time
 
 class Direction(Enum):
     RIGHT = 1
@@ -11,16 +12,9 @@ class Direction(Enum):
 
 Point = namedtuple('Point', 'x, y')
 
-# rgb colors
-WHITE = (255, 255, 255)
-RED = (200,0,0)
-BLUE1 = (0, 0, 255)
-BLUE2 = (0, 100, 255)
-BLACK = (0,0,0)
-
 BLOCK_SIZE = 20
 
-class SnakeGameAI:
+class SnakeGame_v1:
 
     def __init__(self, w=400, h=400):
         self.w = w
@@ -48,8 +42,8 @@ class SnakeGameAI:
     def play_step(self, action):
         self.frame_iteration += 1
         # 1. move
-        self._move(action) # update the head
-        self.snake.insert(0, self.head)
+        self._move(action)
+        self.snake.insert(0, self.head) # update the head
         # 2. check if game over
         reward = 0
         game_over = False
@@ -104,23 +98,6 @@ class SnakeGameAI:
             y -= BLOCK_SIZE
         self.head = Point(x, y)
 
-    def _move_4d(self, action):
-        direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = np.argmax(action)
-        new_dir = direction_array[idx]
-        self.direction = new_dir
-        x = self.head.x
-        y = self.head.y
-        if self.direction == Direction.RIGHT:
-            x += BLOCK_SIZE
-        elif self.direction == Direction.LEFT:
-            x -= BLOCK_SIZE
-        elif self.direction == Direction.DOWN:
-            y += BLOCK_SIZE
-        elif self.direction == Direction.UP:
-            y -= BLOCK_SIZE
-        self.head = Point(x, y)
-
     def get_state(self):
         head = self.snake[0]
         point_l = Point(head.x - 20, head.y)
@@ -159,8 +136,99 @@ class SnakeGameAI:
             self.food.y > self.head.y  # food down
             ]
         return np.array(state, dtype=int)
-    
-    def get_matrix_state(self):
+
+
+import pygame
+pygame.init()
+font = pygame.font.Font(None, 25)
+
+WHITE = (255, 255, 255)
+RED = (200,0,0)
+BLUE1 = (0, 0, 255)
+BLUE2 = (0, 100, 255)
+BLACK = (0,0,0)
+GREEN1 = (0, 255, 100)
+GREEN2 = (0, 255, 200)
+
+class SnakeGameVisual_v1(SnakeGame_v1):
+    def __init__(self, w=400, h=400, speed=8):
+        super().__init__(w, h)
+        self.speed = speed
+        self.display = pygame.display.set_mode((self.w, self.h))
+        pygame.display.set_caption('Snake')
+        self.clock = pygame.time.Clock()
+
+    def play_step(self, action):
+        self.frame_iteration += 1
+        # collect user input
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        self._move(action)
+        self.snake.insert(0, self.head)
+        reward = 0
+        game_over = False
+        if self.is_collision() or self.frame_iteration > 50*len(self.snake):
+            game_over = True
+            if self.is_collision():
+                reward = -10
+            return self.get_state(), reward, game_over, self.score
+        if self.head == self.food:
+            self.score += 1
+            reward = 10
+            self._place_food()
+        else:
+            self.snake.pop()
+        self._update_ui()
+        if self.speed != 0:
+            self.clock.tick(self.speed)
+        new_state = self.get_state()
+        return new_state, reward, game_over, self.score
+        
+    def _update_ui(self):
+        self.display.fill(BLACK)
+
+        for i, pt in enumerate(self.snake):
+            if i == 0:
+                pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
+            else:
+                pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
+        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
+
+        text = font.render("Score: " + str(self.score), True, WHITE)
+        self.display.blit(text, [0, 0])
+        pygame.display.flip()
+
+    def close_pygame(self):
+        time.sleep(2)
+        pygame.quit()
+
+
+class SnakeGame_v2(SnakeGame_v1):
+    def __init__(self, w=400, h=400):
+        super().__init__(w, h)
+
+    def _move(self, action):
+        direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
+        idx = np.argmax(action)
+        new_dir = direction_array[idx]
+        self.direction = new_dir
+        x = self.head.x
+        y = self.head.y
+        if self.direction == Direction.RIGHT:
+            x += BLOCK_SIZE
+        elif self.direction == Direction.LEFT:
+            x -= BLOCK_SIZE
+        elif self.direction == Direction.DOWN:
+            y += BLOCK_SIZE
+        elif self.direction == Direction.UP:
+            y -= BLOCK_SIZE
+        self.head = Point(x, y)
+
+    def get_state(self):
         state = np.zeros((self.h // BLOCK_SIZE + 1, self.w // BLOCK_SIZE + 1))
         state[0, :] = 1
         state[-1, :] = 1
@@ -180,26 +248,44 @@ class SnakeGameAI:
         state[y_index][x_index] = -1  # Cibo rappresentato da -1
         return state
     
-    def play_step_m(self, action):
-        self.frame_iteration += 1
-        # 1. move
-        self._move_4d(action) # update the head
-        self.snake.insert(0, self.head)
-        # 2. check if game over
-        reward = 0
-        game_over = False
-        if self.is_collision() or self.frame_iteration > 50*len(self.snake):
-            game_over = True
-            if self.is_collision():
-                reward = -10
-            return self.get_matrix_state(), reward, game_over, self.score
-        # 3. place new food or just move
-        if self.head == self.food:
-            self.score += 1
-            reward = 10
-            self._place_food()
-        else:
-            self.snake.pop()
-        # 5. return game over and score
-        new_state = self.get_matrix_state()
-        return new_state, reward, game_over, self.score
+class SnakeGameVisual_v2(SnakeGameVisual_v1):
+    def __init__(self, w=400, h=400):
+        super().__init__(w, h)
+
+    def _move(self, action):
+        direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
+        idx = np.argmax(action)
+        new_dir = direction_array[idx]
+        self.direction = new_dir
+        x = self.head.x
+        y = self.head.y
+        if self.direction == Direction.RIGHT:
+            x += BLOCK_SIZE
+        elif self.direction == Direction.LEFT:
+            x -= BLOCK_SIZE
+        elif self.direction == Direction.DOWN:
+            y += BLOCK_SIZE
+        elif self.direction == Direction.UP:
+            y -= BLOCK_SIZE
+        self.head = Point(x, y)
+
+    def get_state(self):
+        state = np.zeros((7, 7), dtype=int)
+        center = 3
+        state[center, center] = 2
+        for segment in self.snake[1:]:
+            x_diff = int((segment.x - self.head.x) / BLOCK_SIZE)
+            y_diff = int((segment.y - self.head.y) / BLOCK_SIZE)
+            if abs(x_diff) <= 3 and abs(y_diff) <= 3:
+                state[center + y_diff, center + x_diff] = 1
+
+        # Posiziona i bordi
+        for i in range(-3, 4):
+            for j in range(-3, 4):
+                if (self.head.x + i * BLOCK_SIZE < 0 or
+                    self.head.x + i * BLOCK_SIZE >= self.w or
+                    self.head.y + j * BLOCK_SIZE < 0 or
+                    self.head.y + j * BLOCK_SIZE >= self.h):
+                    state[center + j, center + i] = 1
+        
+        return state
