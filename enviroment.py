@@ -1,3 +1,4 @@
+import pygame
 import random
 from enum import Enum
 from collections import namedtuple
@@ -11,15 +12,32 @@ class Direction(Enum):
     DOWN = 4
 
 Point = namedtuple('Point', 'x, y')
-
 BLOCK_SIZE = 20
 
-class SnakeGame_v1:
+WHITE = (255, 255, 255)
+RED = (200, 0, 0)
+BLUE1 = (0, 0, 255)
+BLUE2 = (0, 100, 255)
+BLACK = (0, 0, 0)
+GREEN1 = (0, 255, 100)
+GREEN2 = (0, 255, 200)
 
-    def __init__(self, w=400, h=400):
+class LinearStateSnakeGame:
+
+    def __init__(self, w=400, h=400, visual=True, speed=0):
         self.w = w
         self.h = h
+        self.visual = visual
+        self.speed = speed
         self.reset()
+
+        if self.visual:
+            # Inizializzazione Pygame per la modalità visiva
+            pygame.init()
+            self.display = pygame.display.set_mode((self.w, self.h))
+            pygame.display.set_caption('Snake')
+            self.clock = pygame.time.Clock()
+            self.font = pygame.font.Font(None, 25)
 
     def reset(self):
         self.direction = Direction.RIGHT
@@ -41,6 +59,11 @@ class SnakeGame_v1:
 
     def play_step(self, action):
         self.frame_iteration += 1
+        if self.visual:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
         # 1. move
         self._move(action)
         self.snake.insert(0, self.head) # update the head
@@ -58,6 +81,10 @@ class SnakeGame_v1:
             self._place_food()
         else:
             self.snake.pop()
+        if self.visual:
+            self._update_ui()
+            if self.speed != 0:
+                self.clock.tick(self.speed)
         # 5. return game over and score
         new_state = self.get_state()
         return new_state, reward, game_over, self.score
@@ -136,80 +163,31 @@ class SnakeGame_v1:
             self.food.y > self.head.y  # food down
             ]
         return np.array(state, dtype=int)
-
-
-import pygame
-pygame.init()
-font = pygame.font.Font(None, 25)
-
-WHITE = (255, 255, 255)
-RED = (200,0,0)
-BLUE1 = (0, 0, 255)
-BLUE2 = (0, 100, 255)
-BLACK = (0,0,0)
-GREEN1 = (0, 255, 100)
-GREEN2 = (0, 255, 200)
-
-class SnakeGameVisual_v1(SnakeGame_v1):
-    def __init__(self, w=400, h=400, speed=8):
-        super().__init__(w, h)
-        self.speed = speed
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
-        self.clock = pygame.time.Clock()
-
-    def play_step(self, action):
-        self.frame_iteration += 1
-        # collect user input
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-        self._move(action)
-        self.snake.insert(0, self.head)
-        reward = 0
-        game_over = False
-        if self.is_collision() or self.frame_iteration > 50*len(self.snake):
-            game_over = True
-            if self.is_collision():
-                reward = -10
-            return self.get_state(), reward, game_over, self.score
-        if self.head == self.food:
-            self.score += 1
-            reward = 10
-            self._place_food()
-        else:
-            self.snake.pop()
-        self._update_ui()
-        if self.speed != 0:
-            self.clock.tick(self.speed)
-        new_state = self.get_state()
-        return new_state, reward, game_over, self.score
-        
+    
     def _update_ui(self):
         self.display.fill(BLACK)
-
         for i, pt in enumerate(self.snake):
             if i == 0:
                 pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-                pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
+                pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
             else:
                 pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-                pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
+                pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
-
-        text = font.render("Score: " + str(self.score), True, WHITE)
+        text = self.font.render("Score: " + str(self.score), True, WHITE)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
     def close_pygame(self):
-        time.sleep(2)
-        pygame.quit()
+        if self.visual:
+            time.sleep(2)
+            pygame.quit()
 
 
-class SnakeGame_v2(SnakeGame_v1):
-    def __init__(self, w=400, h=400):
-        super().__init__(w, h)
+
+class MatrixStateSnakeGame(LinearStateSnakeGame):
+    def __init__(self, w=400, h=400, visual=True, speed=8):
+        super().__init__(w=400, h=400, visual=True, speed=8)
 
     def _move(self, action):
         direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
@@ -246,46 +224,4 @@ class SnakeGame_v2(SnakeGame_v1):
         x_index = int(self.food.x // BLOCK_SIZE)
         y_index = int(self.food.y // BLOCK_SIZE)
         state[y_index][x_index] = -1  # Cibo rappresentato da -1
-        return state
-    
-class SnakeGameVisual_v2(SnakeGameVisual_v1):
-    def __init__(self, w=400, h=400):
-        super().__init__(w, h)
-
-    def _move(self, action):
-        direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = np.argmax(action)
-        new_dir = direction_array[idx]
-        self.direction = new_dir
-        x = self.head.x
-        y = self.head.y
-        if self.direction == Direction.RIGHT:
-            x += BLOCK_SIZE
-        elif self.direction == Direction.LEFT:
-            x -= BLOCK_SIZE
-        elif self.direction == Direction.DOWN:
-            y += BLOCK_SIZE
-        elif self.direction == Direction.UP:
-            y -= BLOCK_SIZE
-        self.head = Point(x, y)
-
-    def get_state(self):
-        state = np.zeros((7, 7), dtype=int)
-        center = 3
-        state[center, center] = 2
-        for segment in self.snake[1:]:
-            x_diff = int((segment.x - self.head.x) / BLOCK_SIZE)
-            y_diff = int((segment.y - self.head.y) / BLOCK_SIZE)
-            if abs(x_diff) <= 3 and abs(y_diff) <= 3:
-                state[center + y_diff, center + x_diff] = 1
-
-        # Posiziona i bordi
-        for i in range(-3, 4):
-            for j in range(-3, 4):
-                if (self.head.x + i * BLOCK_SIZE < 0 or
-                    self.head.x + i * BLOCK_SIZE >= self.w or
-                    self.head.y + j * BLOCK_SIZE < 0 or
-                    self.head.y + j * BLOCK_SIZE >= self.h):
-                    state[center + j, center + i] = 1
-        
         return state

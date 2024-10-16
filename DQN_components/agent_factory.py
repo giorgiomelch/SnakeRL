@@ -1,6 +1,5 @@
 from . import replay_buffer 
 from . import model_factory
-import enviroment
 import tensorflow as tf
 import numpy as np
 
@@ -14,14 +13,14 @@ def convert_to_tensorflow(states, actions, rewards, next_states, dones):
 
         
 class Agent:
-    def __init__(self, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True, file_name_model="model.keras", visual=False):
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
+                 eps_greedy=True, file_name_model="model.keras"):
         self.n_games = 0
         self.epsilon = 1
         self.batch_size = batch_size
         self.memory = replay_buffer.CircularBuffer(max_size=max_memory)
         self.dqnetwork = model_factory.QNetwork(lr=lr, gamma=gamma, input_shape=input_shape, n_output=n_actions, units=model_units)
-        self.env = enviroment.SnakeGameVisual_v1(speed=0) if visual else enviroment.SnakeGame_v1()
+        self.env = enviroment
         self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
         self.file_name_model = file_name_model
 
@@ -78,16 +77,16 @@ class Agent:
                 score_list.append(score)
             step+=1
 
-        if isinstance(self.env, enviroment.SnakeGameVisual):
+        if self.env.visual:
             self.env.close_pygame()   
         return score_list
     
 
 class Agent_DoubleDQN(Agent):
-    def __init__(self, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True, file_name_model="model_DOUBLE.keras", visual=False):
-        super().__init__(lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy, file_name_model, visual)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
+                 eps_greedy=True, file_name_model="model_DOUBLE.keras"):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
+                         eps_greedy, file_name_model)
         self.dqnetwork = model_factory.DoubleQNetwork(lr=lr, gamma=gamma, units=model_units)
 
     def train_agent(self, N_GAME):
@@ -113,13 +112,15 @@ class Agent_DoubleDQN(Agent):
                     self.dqnetwork.update_weights()
                 score_list.append(score)
             step+=1
+        if self.env.visual:
+            self.env.close_pygame()   
         return score_list
 
 class Agent_PER(Agent):
-    def __init__(self, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True, file_name_model="model_PER.keras", visual=False):
-        super().__init__(lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy, file_name_model, visual)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
+                 eps_greedy=True, file_name_model="model_PER.keras"):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
+                         eps_greedy, file_name_model)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.PER_QNetwork(lr=lr, gamma=gamma, units=model_units)
 
@@ -132,10 +133,10 @@ class Agent_PER(Agent):
 
 
 class Agent_DDQN_PER(Agent_DoubleDQN):
-    def __init__(self, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True, file_name_model="model_DDQN_PER.keras", visual=False):
-        super().__init__(lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy, file_name_model, visual)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
+                 eps_greedy=True, file_name_model="model_DDQN_PER.keras"):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
+                         eps_greedy, file_name_model)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.DDQN_PER_QNetwork(lr=lr, gamma=gamma, units=model_units)
 
