@@ -1,5 +1,5 @@
 import argparse
-import enviroment_visual as enviroment_visual
+import enviroment
 import numpy as np
 import keras
 
@@ -15,7 +15,7 @@ def initialize_QTable():
 def tab_agent(speed=10):
     file = 'Q_table/ExplorationFunction/1000000step.npy' 
     Q_table = np.load(file)
-    env_visual = enviroment_visual.SnakeGameAI(w=400, h=400, speed=speed)
+    env_visual = enviroment.LinearStateSnakeGame(visual=True, speed=speed)
     env_visual.reset()
     game_over = False
     while not game_over:
@@ -26,12 +26,12 @@ def tab_agent(speed=10):
         final_move[action] = 1
         _, _, game_over, score = env_visual.play_step(final_move)
         
-    env_visual.quit()
+    env_visual.close_pygame()
     print(f"Score: {score}\n", end="")
 
 def lnn_agent(speed=10):
-    file = "DQNmodel/LNN/model.keras"
-    env_visual = enviroment_visual.SnakeGameAI(w=400, h=400, speed=speed)
+    file = "DQN_saved_model/LNN/model.keras"
+    env_visual = enviroment.LinearStateSnakeGame(visual=True, speed=speed)
     model = keras.models.load_model(file)
     game_over = False
     state = env_visual.get_state()
@@ -43,9 +43,9 @@ def lnn_agent(speed=10):
     env_visual.quit()
     print(f"Score: {score}\n", end="")
 
-def cnn_agent(speed):
-    file = "DQNmodel/CNN/model.keras"
-    env_visual = enviroment_visual.SnakeGameAI(w=400, h=400, speed=speed)
+def cnn_agent(speed=10):
+    file = "DQN_saved_model/CNN/model.keras"
+    env_visual = enviroment.LinearStateSnakeGame(visual=True, speed=speed)
     model = keras.models.load_model(file)
     game_over = False
     state = env_visual.get_matrix_state()
