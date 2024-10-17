@@ -33,9 +33,16 @@ class QNetwork:
         grads = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
-    def save_model(self, model_dir_path="./DQN_saved_model/LNN", file_name='model.keras'):
-        file_name = os.path.join(model_dir_path, file_name)
-        self.model.save(file_name)
+    def save_model(self, directory_path, file_name):
+        if not os.path.exists(directory_path):
+            print(f"Errore: la directory '{directory_path}' non esiste. Modello non salvato.")
+            return
+        full_path = os.path.join(directory_path, file_name)
+        try:
+            self.model.save(full_path)
+            print(f"Modello salvato con successo in {full_path}")
+        except Exception as e:
+            print(f"Errore durante il salvataggio del modello: {e}")
 
 class DoubleQNetwork(QNetwork):
     def __init__(self, lr, gamma, input_shape, n_output, units):
