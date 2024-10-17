@@ -27,6 +27,8 @@ class LinearStateSnakeGame:
     def __init__(self, w=400, h=400, visual=True, speed=0):
         self.w = w
         self.h = h
+        self.state_shape = [11]
+        self.n_actions = 3
         self.visual = visual
         self.speed = speed
         self.reset()
@@ -65,7 +67,7 @@ class LinearStateSnakeGame:
                     pygame.quit()
                     quit()
         # 1. move
-        self._move(action)
+        self.move(action)
         self.snake.insert(0, self.head) # update the head
         # 2. check if game over
         reward = 0
@@ -82,7 +84,7 @@ class LinearStateSnakeGame:
         else:
             self.snake.pop()
         if self.visual:
-            self._update_ui()
+            self.update_ui()
             if self.speed != 0:
                 self.clock.tick(self.speed)
         # 5. return game over and score
@@ -100,7 +102,7 @@ class LinearStateSnakeGame:
             return True
         return False
 
-    def _move(self, action):
+    def move(self, action):
         # [straight, right, left]
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction)
@@ -164,7 +166,7 @@ class LinearStateSnakeGame:
             ]
         return np.array(state, dtype=int)
     
-    def _update_ui(self):
+    def update_ui(self):
         self.display.fill(BLACK)
         for i, pt in enumerate(self.snake):
             if i == 0:
@@ -184,12 +186,13 @@ class LinearStateSnakeGame:
             pygame.quit()
 
 
-
 class MatrixStateSnakeGame(LinearStateSnakeGame):
-    def __init__(self, w=400, h=400, visual=True, speed=8):
-        super().__init__(w=400, h=400, visual=True, speed=8)
+    def __init__(self, w=400, h=400, visual=True, speed=0):
+        super().__init__(w, h, visual, speed)
+        self.state_shape = [40]
+        self.n_actions = 4
 
-    def _move(self, action):
+    def move(self, action):
         direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = np.argmax(action)
         new_dir = direction_array[idx]
@@ -207,21 +210,33 @@ class MatrixStateSnakeGame(LinearStateSnakeGame):
         self.head = Point(x, y)
 
     def get_state(self):
-        state = np.zeros((self.h // BLOCK_SIZE + 1, self.w // BLOCK_SIZE + 1))
-        state[0, :] = 1
-        state[-1, :] = 1
-        state[:, 0] = 1
-        state[:, -1] = 1 
-        for point in self.snake[1:]:
-            x_index = int(point.x // BLOCK_SIZE)
-            y_index = int(point.y // BLOCK_SIZE)
-            state[y_index][x_index] = 1  # Corpo rappresentato da 1
-        head = self.snake[0]
-        x_index = int(head.x // BLOCK_SIZE)
-        y_index = int(head.y // BLOCK_SIZE)
-        if x_index < self.w/BLOCK_SIZE and y_index < self.h/BLOCK_SIZE:
-            state[y_index][x_index] = 2  # Testa rappresentata da 2
-        x_index = int(self.food.x // BLOCK_SIZE)
-        y_index = int(self.food.y // BLOCK_SIZE)
-        state[y_index][x_index] = -1  # Cibo rappresentato da -1
-        return state
+        state = np.zeros((7, 7), dtype=int)
+        center = 3
+        state[center, center] = 2
+        # Aggiungi il corpo dello snake
+        for segment in self.snake[1:]:
+            x_diff = int((segment.x - self.head.x) / BLOCK_SIZE)
+            y_diff = int((segment.y - self.head.y) / BLOCK_SIZE)
+            if abs(x_diff) <= 3 and abs(y_diff) <= 3:
+                state[center + y_diff, center + x_diff] = 1
+        # Aggiungi i bordi del campo come 1
+        for i in range(-3, 4):
+            for j in range(-3, 4):
+                if (self.head.x + i * BLOCK_SIZE < 0 or
+                    self.head.x + i * BLOCK_SIZE >= self.w or
+                    self.head.y + j * BLOCK_SIZE < 0 or
+                    self.head.y + j * BLOCK_SIZE >= self.h):
+                    state[center + j, center + i] = 1
+        # Aggiungi la posizione del cibo come -1
+        x_diff = int((self.food.x - self.head.x) / BLOCK_SIZE)
+        y_diff = int((self.food.y - self.head.y) / BLOCK_SIZE)
+        if abs(x_diff) <= 3 and abs(y_diff) <= 3:
+            state[center + y_diff, center + x_diff] = -1
+        food_direction = [
+            self.food.x < self.head.x,  # food left
+            self.food.x > self.head.x,  # food right
+            self.food.y < self.head.y,  # food up
+            self.food.y > self.head.y  # food down
+            ]
+        final_state = np.concatenate((state.flatten(), food_direction))
+        return final_state
