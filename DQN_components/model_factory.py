@@ -40,7 +40,6 @@ class QNetwork:
         full_path = os.path.join(directory_path, file_name)
         try:
             self.model.save(full_path)
-            print(f"Modello salvato con successo in {full_path}")
         except Exception as e:
             print(f"Errore durante il salvataggio del modello: {e}")
 
