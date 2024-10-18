@@ -13,7 +13,7 @@ def convert_to_tensorflow(states, actions, rewards, next_states, dones):
 
         
 class Agent:
-    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[128, 256], 
                  eps_greedy=True):
         self.n_games = 0
         self.epsilon = 1
@@ -32,7 +32,7 @@ class Agent:
         self.dqnetwork.train_step(states, actions, rewards, next_states, dones)
 
     def softmax_policy(self, state):
-        Q_values = self.dqnetwork.online_model(state[np.newaxis])
+        Q_values = self.dqnetwork.predict(state[np.newaxis])
         if self.epsilon < 0.005: # soglia inserita per evitare buffer overflow
             return np.argmax(Q_values[0])
         else:
@@ -46,11 +46,11 @@ class Agent:
         if np.random.rand() < self.epsilon:
             return np.random.randint(self.n_actions)
         else:
-            Q_values = self.dqnetwork.model(state[np.newaxis])
+            Q_values = self.dqnetwork.predict(state[np.newaxis])
             return np.argmax(Q_values[0])
         
     def get_action(self, state):
-        final_move = np.zeros(self.n_actions) # array di zero per codifica onw hot delle azioni
+        final_move = np.zeros(self.n_actions) # array di zero per codifica one hot delle azioni
         move = self.exploration_policy(state)
         final_move[move] = 1
         return final_move
