@@ -33,6 +33,9 @@ class QNetwork:
         grads = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
+    def predict(self, state):
+        return self.model(state)
+    
     def save_model(self, directory_path, file_name):
         if not os.path.exists(directory_path):
             print(f"Errore: la directory '{directory_path}' non esiste. Modello non salvato.")
@@ -42,6 +45,17 @@ class QNetwork:
             self.model.save(full_path)
         except Exception as e:
             print(f"Errore durante il salvataggio del modello: {e}")
+
+    def upload_model(self, file_path):
+        if not os.path.exists(file_path):
+            print(f"Errore: il file '{file_path}' non esiste. Impossibile caricare il modello.")
+            return
+        try:
+            self.model = tf.keras.models.load_model(file_path)
+            print(f"Modello caricato con successo da '{file_path}'")
+        except Exception as e:
+            print(f"Errore durante il caricamento del modello: {e}")
+
 
 class DoubleQNetwork(QNetwork):
     def __init__(self, lr, gamma, input_shape, n_output, units):
@@ -67,6 +81,19 @@ class DoubleQNetwork(QNetwork):
     
     def update_weights(self):
         self.target_model.set_weights(self.online_model.get_weights())
+    
+    def predict(self, state):
+        return self.online_model(state)
+    
+    def upload_model(self, file_path):
+        if not os.path.exists(file_path):
+            print(f"Errore: il file '{file_path}' non esiste. Impossibile caricare il modello.")
+            return
+        try:
+            self.online_model = tf.keras.models.load_model(file_path)
+            print(f"Modello caricato con successo da '{file_path}'")
+        except Exception as e:
+            print(f"Errore durante il caricamento del modello: {e}")
 
 
 class PER_QNetwork(QNetwork):
