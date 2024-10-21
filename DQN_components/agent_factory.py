@@ -13,8 +13,7 @@ def convert_to_tensorflow(states, actions, rewards, next_states, dones):
 
         
 class Agent:
-    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[128, 256], 
-                 eps_greedy=True):
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[128, 256]):
         self.n_games = 0
         self.epsilon = 1
         self.batch_size = batch_size
@@ -22,7 +21,7 @@ class Agent:
         self.dqnetwork = model_factory.QNetwork(lr=lr, gamma=gamma, input_shape=input_shape, n_output=n_actions, units=model_units)
         self.env = enviroment
         self.n_actions = n_actions
-        self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
+        self.exploration_policy = None
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append(convert_to_tensorflow(state, action, reward, next_state, done))
@@ -55,7 +54,10 @@ class Agent:
         final_move[move] = 1
         return final_move
     
-    def train_agent(self, N_GAME, episode_decay, directory_path="", file_name_model=""):
+    def train_agent(self, N_GAME, episode_decay, eps_greedy=True, directory_path="", file_name_model=""):
+        self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
+        if episode_decay <=0:
+            episode_decay=1
         score_list = []
         record = 0
         step=0
@@ -82,13 +84,14 @@ class Agent:
     
 
 class Agent_DoubleDQN(Agent):
-    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True):
-        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256]):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units)
         self.dqnetwork = model_factory.DoubleQNetwork(lr=lr, gamma=gamma, input_shape=input_shape, n_output=n_actions, units=model_units)
 
-    def train_agent(self, N_GAME, episode_decay, update_target_model=5, directory_path="", file_name_model=""):
+    def train_agent(self, N_GAME, episode_decay, eps_greedy=True, update_target_model=5, directory_path="", file_name_model=""):
+        self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
+        if episode_decay <=0:
+            episode_decay=1
         score_list = []
         record = 0
         step=0
@@ -115,10 +118,8 @@ class Agent_DoubleDQN(Agent):
         return score_list
 
 class Agent_PER(Agent):
-    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True):
-        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256]):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.PER_QNetwork(lr=lr, gamma=gamma,input_shape= input_shape, n_output=n_actions, units=model_units)
 
@@ -131,10 +132,8 @@ class Agent_PER(Agent):
 
 
 class Agent_DDQN_PER(Agent_DoubleDQN):
-    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256], 
-                 eps_greedy=True):
-        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units, 
-                         eps_greedy)
+    def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[256]):
+        super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.DDQN_PER_QNetwork(lr=lr, gamma=gamma,input_shape= input_shape, n_output=n_actions, units=model_units)
 
