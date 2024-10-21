@@ -40,6 +40,7 @@ class LinearStateSnakeGame:
             pygame.display.set_caption('Snake')
             self.clock = pygame.time.Clock()
             self.font = pygame.font.Font(None, 25)
+            self.update_ui()
 
     def reset(self):
         self.direction = Direction.RIGHT
@@ -185,6 +186,62 @@ class LinearStateSnakeGame:
             time.sleep(2)
             pygame.quit()
 
+    def set_fruit(self, x, y):
+        self.food = Point(x, y)
+
+    def set_test_uno(self):
+        self.direction = Direction.RIGHT
+        self.head = Point(self.w/2, self.h/2)
+        self.snake = [self.head,
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x-(3*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x-(3*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(3*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x, self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(1*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(2*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(3*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(4*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(5*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(6*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(7*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(8*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE)),
+                      Point(self.head.x+(9*BLOCK_SIZE), self.head.y-(2*BLOCK_SIZE))]
+        self.set_fruit(self.head.x-(2*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE))
+
+    def set_test_due(self):
+        self.direction = Direction.LEFT
+        self.head = Point(self.w/2, self.h/2)
+        self.snake = [self.head,
+                      Point(self.head.x+(1*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x+(2*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x+(3*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x+(3*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x+(2*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x+(1*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x, self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(3*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y-(1*BLOCK_SIZE)),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y+(1*BLOCK_SIZE)),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y+(2*BLOCK_SIZE)),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y+(3*BLOCK_SIZE)),
+                      Point(self.head.x-(4*BLOCK_SIZE), self.head.y+(3*BLOCK_SIZE)),
+                      Point(self.head.x-(3*BLOCK_SIZE), self.head.y+(3*BLOCK_SIZE)),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y+(3*BLOCK_SIZE)),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y+(2*BLOCK_SIZE)),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y+(1*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y+(1*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y+(2*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y+(3*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y+(4*BLOCK_SIZE)),
+                      Point(self.head.x-(1*BLOCK_SIZE), self.head.y+(5*BLOCK_SIZE))]
+        self.set_fruit(self.head.x-(3*BLOCK_SIZE), self.head.y+(2*BLOCK_SIZE))
 
 class MatrixStateSnakeGame(LinearStateSnakeGame):
     def __init__(self, w=400, h=400, visual=True, speed=0):
