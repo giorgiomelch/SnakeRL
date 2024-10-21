@@ -43,25 +43,29 @@ def lnn_agent(speed=10):
     env_visual.quit()
     print(f"Score: {score}\n", end="")
 
-def cnn_agent(speed=10):
-    file = "DQN_saved_model/CNN/model.keras"
-    env_visual = enviroment.LinearStateSnakeGame(visual=True, speed=speed)
+def lnn_agent_m(speed=5):
+    file = "./DQN_saved_model/matrix_state/model_DDQN.keras"
+    env_visual = enviroment.MatrixStateSnakeGame(visual=True, speed=speed)
     model = keras.models.load_model(file)
     game_over = False
-    state = env_visual.get_matrix_state()
+    state = env_visual.get_state()
     while not game_over:
         action = np.argmax(model(state[np.newaxis])[0])
         final_move = [0,0,0,0]
         final_move[action] = 1
-        state, _, game_over, score = env_visual.play_step_m(final_move)
-    env_visual.quit()
+        state, _, game_over, score = env_visual.play_step(final_move)
+        matrix = state[:49]
+        matrix[matrix == -1] = 5
+        matrix = matrix.reshape(7, 7)
+        for i in matrix:
+            print(i)
+        print("\n\n\n")
+    env_visual.close_pygame()
     print(f"Score: {score}\n", end="")
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Choose which Snake agent to run.")
-    parser.add_argument('agent', choices=['tab', 'lnn', 'cnn'], help="Choose the agent: 'tab', 'lnn', or 'cnn'")
+    parser.add_argument('agent', choices=['tab', 'lnn'], help="Choose the agent: 'tab' or 'lnn'")
     parser.add_argument('--speed', type=int, help="Speed of the Snake game", default=10)
 
     args = parser.parse_args()
@@ -69,6 +73,4 @@ if __name__ == "__main__":
     if args.agent == 'tab':
         tab_agent(speed=args.speed)
     elif args.agent == 'lnn':
-        lnn_agent(speed=args.speed)
-    elif args.agent == 'cnn':
-        cnn_agent(speed=args.speed)
+        lnn_agent_m(speed=args.speed)
