@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_trend(scores, extra_title=None):
+def plot_trend(scores, max_y=60, extra_title=None):
     calcola_media = lambda i: sum(scores[i-50:i]) / 50
     media_precedenti = np.array([calcola_media(i) for i in range(50, len(scores) + 1)])
     max_mean_value = np.max(media_precedenti)
@@ -12,7 +12,7 @@ def plot_trend(scores, extra_title=None):
     plt.title(f"Andamento del training {extra_title}")
     plt.xlabel("Partite")
     plt.ylabel("Score")
-    plt.ylim(0, 60)
+    plt.ylim(0, max_y)
     plt.legend()
     plt.grid()
     plt.show()
