@@ -244,10 +244,13 @@ class LinearStateSnakeGame:
         self.set_fruit(self.head.x-(3*BLOCK_SIZE), self.head.y+(2*BLOCK_SIZE))
 
 class MatrixStateSnakeGame(LinearStateSnakeGame):
-    def __init__(self, w=400, h=400, visual=True, speed=0):
+    def __init__(self, w=400, h=400, visual=True, speed=0, visual_range=7):
         super().__init__(w, h, visual, speed)
-        self.state_shape = [40]
+        if visual_range % 2 == 0:
+            raise ValueError("La dimensione della matrice deve essere dispari.")
+        self.visual_range = visual_range
         self.n_actions = 4
+        self.state_shape = [visual_range**2 + self.n_actions]
 
     def move(self, action):
         direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
@@ -267,33 +270,30 @@ class MatrixStateSnakeGame(LinearStateSnakeGame):
         self.head = Point(x, y)
 
     def get_state(self):
-        state = np.zeros((7, 7), dtype=int)
-        center = 3
+        state = np.zeros((self.visual_range, self.visual_range), dtype=int)
+        center = self.visual_range // 2
         state[center, center] = 2
-        # Aggiungi il corpo dello snake
         for segment in self.snake[1:]:
             x_diff = int((segment.x - self.head.x) / BLOCK_SIZE)
             y_diff = int((segment.y - self.head.y) / BLOCK_SIZE)
-            if abs(x_diff) <= 3 and abs(y_diff) <= 3:
+            if abs(x_diff) <= center and abs(y_diff) <= center:
                 state[center + y_diff, center + x_diff] = 1
-        # Aggiungi i bordi del campo come 1
-        for i in range(-3, 4):
-            for j in range(-3, 4):
+        for i in range(-center, center + 1):
+            for j in range(-center, center + 1):
                 if (self.head.x + i * BLOCK_SIZE < 0 or
                     self.head.x + i * BLOCK_SIZE >= self.w or
                     self.head.y + j * BLOCK_SIZE < 0 or
                     self.head.y + j * BLOCK_SIZE >= self.h):
                     state[center + j, center + i] = 1
-        # Aggiungi la posizione del cibo come -1
         x_diff = int((self.food.x - self.head.x) / BLOCK_SIZE)
         y_diff = int((self.food.y - self.head.y) / BLOCK_SIZE)
-        if abs(x_diff) <= 3 and abs(y_diff) <= 3:
+        if abs(x_diff) <= center and abs(y_diff) <= center:
             state[center + y_diff, center + x_diff] = -1
         food_direction = [
             self.food.x < self.head.x,  # food left
             self.food.x > self.head.x,  # food right
             self.food.y < self.head.y,  # food up
-            self.food.y > self.head.y  # food down
-            ]
+            self.food.y > self.head.y   # food down
+        ]
         final_state = np.concatenate((state.flatten(), food_direction))
         return final_state
