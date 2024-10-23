@@ -15,6 +15,7 @@ def convert_to_tensorflow(states, actions, rewards, next_states, dones):
 class Agent:
     def __init__(self, enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units=[128, 256]):
         self.n_games = 0
+        self.max_games = 0
         self.epsilon = 1
         self.batch_size = batch_size
         self.memory = replay_buffer.CircularBuffer(max_size=max_memory)
@@ -58,6 +59,7 @@ class Agent:
         self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
         if episode_decay <=0:
             episode_decay=1
+        self.max_games = N_GAME
         score_list = []
         record = 0
         step=0
@@ -90,11 +92,12 @@ class Agent_DoubleDQN(Agent):
 
     def train_agent(self, N_GAME, episode_decay, eps_greedy=True, update_target_model=5, directory_path="", file_name_model=""):
         self.exploration_policy = self.epsilon_greedy_policy if eps_greedy else self.softmax_policy
-        if episode_decay <=0:
-            episode_decay=1
+        if episode_decay <= 0:
+            episode_decay = 1
+        self.max_games = N_GAME
         score_list = []
         record = 0
-        step=0
+        step = 0
         while self.n_games < N_GAME:
             state_old = self.env.get_state()
             final_move = self.get_action(state_old)
@@ -112,7 +115,7 @@ class Agent_DoubleDQN(Agent):
                 if self.n_games % update_target_model:
                     self.dqnetwork.update_weights()
                 score_list.append(score)
-            step+=1
+            step += 1
         if self.env.visual:
             self.env.close_pygame()   
         return score_list
@@ -122,13 +125,15 @@ class Agent_PER(Agent):
         super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.PER_QNetwork(lr=lr, gamma=gamma,input_shape= input_shape, n_output=n_actions, units=model_units)
+        self.beta = 0.4
 
-    def train_memory(self, beta=0.4):
+    def train_memory(self):
         if len(self.memory.buffer) < self.batch_size:
             return
-        states, actions, rewards, next_states, dones, indices, weights = self.memory.sample(self.batch_size, beta)
+        states, actions, rewards, next_states, dones, indices, weights = self.memory.sample(self.batch_size, self.beta)
         td_errors = self.dqnetwork.train_step(states, actions, rewards, next_states, dones, weights)
         self.memory.update_priorities(indices, td_errors.numpy())
+        self.beta += 0.6 / self.max_games
 
 
 class Agent_DDQN_PER(Agent_DoubleDQN):
@@ -136,10 +141,12 @@ class Agent_DDQN_PER(Agent_DoubleDQN):
         super().__init__(enviroment, lr, gamma, max_memory, batch_size, input_shape, n_actions, model_units)
         self.memory = replay_buffer.PrioritizedReplayBuffer(max_size=max_memory, zeta=0.6)
         self.dqnetwork = model_factory.DDQN_PER_QNetwork(lr=lr, gamma=gamma,input_shape= input_shape, n_output=n_actions, units=model_units)
-
-    def train_memory(self, beta=0.4):
+        self.beta = 0.4
+        
+    def train_memory(self):
         if len(self.memory.buffer) < self.batch_size:
             return
-        states, actions, rewards, next_states, dones, indices, weights = self.memory.sample(self.batch_size, beta)
+        states, actions, rewards, next_states, dones, indices, weights = self.memory.sample(self.batch_size, self.beta)
         td_errors = self.dqnetwork.train_step(states, actions, rewards, next_states, dones, weights)
         self.memory.update_priorities(indices, td_errors.numpy())
+        self.beta += 0.6 / self.max_games
