@@ -250,7 +250,7 @@ class MatrixStateSnakeGame(LinearStateSnakeGame):
             raise ValueError("La dimensione della matrice deve essere dispari.")
         self.visual_range = visual_range
         self.n_actions = 4
-        self.state_shape = [visual_range**2 + self.n_actions]
+        self.state_shape = [visual_range**2 + 4]
 
     def move(self, action):
         direction_array = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
@@ -297,3 +297,28 @@ class MatrixStateSnakeGame(LinearStateSnakeGame):
         ]
         final_state = np.concatenate((state.flatten(), food_direction))
         return final_state
+    
+    def update_ui(self):
+        self.display.fill(BLACK)
+        if hasattr(self, 'visual_range'):
+            overlay = pygame.Surface((self.visual_range * BLOCK_SIZE, self.visual_range * BLOCK_SIZE))
+            overlay.set_alpha(100)
+            overlay.fill((255, 0, 0)) 
+
+            head = self.snake[0]
+            half_matrix = self.visual_range // 2
+            center_x = head.x - half_matrix * BLOCK_SIZE
+            center_y = head.y - half_matrix * BLOCK_SIZE
+            self.display.blit(overlay, (center_x, center_y))
+
+        for i, pt in enumerate(self.snake):
+            if i == 0:
+                pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            else:
+                pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
+        text = self.font.render("Score: " + str(self.score), True, WHITE)
+        self.display.blit(text, [0, 0])
+        pygame.display.flip()
