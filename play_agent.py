@@ -29,8 +29,8 @@ def tab_agent(speed=10):
     env_visual.close_pygame()
     print(f"Score: {score}\n", end="")
 
-def lnn_agent(speed=10):
-    file = "DQN_saved_model/LNN/model.keras"
+def dqn_agent_e(speed=10):
+    file = "DQN_saved_model/easy_state/model_DDQN.keras"
     env_visual = enviroment.LinearStateSnakeGame(visual=True, speed=speed)
     model = keras.models.load_model(file)
     game_over = False
@@ -40,12 +40,17 @@ def lnn_agent(speed=10):
         final_move = [0,0,0]
         final_move[action] = 1
         state, _, game_over, score = env_visual.play_step(final_move)
-    env_visual.quit()
+    env_visual.close_pygame()
     print(f"Score: {score}\n", end="")
 
-def lnn_agent_m(speed=5):
-    file = "./DQN_saved_model/matrix_state/model_DDQN.keras"
-    env_visual = enviroment.MatrixStateSnakeGame(visual=True, speed=speed)
+def dqn_agent_m(visual_range, speed=5):
+    if visual_range==7:
+        file = "./DQN_saved_model/matrix_state/bmodel_DDQN.keras"
+    elif visual_range==9:
+        file = "./DQN_saved_model/matrix_state/model_9_3h_DDQN.keras"
+    elif visual_range==11:
+        file = "./DQN_saved_model/matrix_state/model_11_3h_DDQN.keras"
+    env_visual = enviroment.MatrixStateSnakeGame(visual=True, speed=speed, visual_range=visual_range)
     model = keras.models.load_model(file)
     game_over = False
     state = env_visual.get_state()
@@ -54,23 +59,52 @@ def lnn_agent_m(speed=5):
         final_move = [0,0,0,0]
         final_move[action] = 1
         state, _, game_over, score = env_visual.play_step(final_move)
-        matrix = state[:49]
-        matrix[matrix == -1] = 5
-        matrix = matrix.reshape(7, 7)
-        for i in matrix:
-            print(i)
-        print("\n\n\n")
     env_visual.close_pygame()
     print(f"Score: {score}\n", end="")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Choose which Snake agent to run.")
-    parser.add_argument('agent', choices=['tab', 'lnn'], help="Choose the agent: 'tab' or 'lnn'")
-    parser.add_argument('--speed', type=int, help="Speed of the Snake game", default=10)
+def display_agent_options():
+    print("Seleziona un agente di reinforcement learning da eseguire:")
+    print("1. Tabular QLearning, input di 11 elementi")
+    print("2. DQN, input di 11 elementi")
+    print("3. DQN, input matrice 7x7")
+    print("4. DQN, input matrice 9x9")
+    print("5. DQN, input matrice 11x11")
+    print("0. Esci")
 
-    args = parser.parse_args()
-    
-    if args.agent == 'tab':
-        tab_agent(speed=args.speed)
-    elif args.agent == 'lnn':
-        lnn_agent_m(speed=args.speed)
+def main():
+    while True:
+        display_agent_options()
+        choice = input("Inserisci il numero dell'agente che desideri eseguire: ")
+
+        if choice in {"1", "2", "3", "4", "5"}:
+            try:
+                speed = float(input("Inserisci la velocità dello Snake (es. 10.0): "))
+            except ValueError:
+                print("Input non valido. Devi inserire un numero.")
+                continue
+
+        if choice == "1":
+            tab_agent(speed)
+
+        elif choice == "2":
+            # Esegui l'agente DDQN
+            dqn_agent_e(speed)
+
+        elif choice == "3":
+            dqn_agent_m(7, speed)
+
+        elif choice == "4":
+            dqn_agent_m(9, speed)
+
+        elif choice == "5":
+            dqn_agent_m(11, speed)
+
+        elif choice == "0":
+            print("Uscita dal programma.")
+            break
+
+        else:
+            print("Opzione non valida. Riprova.")
+
+if __name__ == "__main__":
+    main()
